@@ -1,11 +1,52 @@
+"use client";
+import { useState } from "react";
 import type { Recipe } from "@/types/recipe";
 import { cn } from "@/lib/utils";
 
 /**
- * Illustrated recipe cover: a plate seen from above with the recipe's colors.
- * Drawn in SVG so every recipe (including AI ones) gets a consistent picture without stock photos.
+ * Food photos for the recipe library (free photos from Unsplash, Unsplash License).
+ * Recipes without a photo (for example AI recipes) use the illustrated plate below,
+ * and so does any photo that fails to load.
  */
+const PHOTOS: Record<string, string> = {
+  "egg-fried-rice": "photo-1512058564366-18510be2db19",
+  "chicken-spinach-wrap": "photo-1626700051175-6818013e1d4f",
+  "greek-yogurt-bowl": "photo-1494390248081-4e521a5940db",
+  "tuna-pasta": "photo-1603220026645-e0fdf221b1e8",
+  "vegetable-omelette": "photo-1510693206972-df098062cb71",
+  "spinach-chicken-omelette": "photo-1677844592730-ce9c936d8f1a",
+  "chicken-rice-bowl": "photo-1546069901-ba9599a7e63c",
+  "banana-oat-pancakes": "photo-1528207776546-365bb710ee93",
+  "tomato-egg-stir-fry": "photo-1759216280661-e785edc3922e",
+  "cheesy-spinach-toast": "photo-1528736235302-52922df5c122",
+  "black-bean-burrito-bowl": "photo-1658346368601-869ae3ded6d1",
+  "chickpea-spinach-curry": "photo-1585937421612-70a008356fbe",
+  "tofu-veggie-stir-fry": "photo-1601226809816-b8c32440158a",
+  "salmon-rice-bowl": "photo-1771154141872-e5ad3905a385",
+  "peanut-butter-banana-toast": "photo-1528945522327-7032b0774637",
+  "chicken-tomato-pasta": "photo-1751022910692-d0a1c3198d52",
+  "overnight-oats": "photo-1497888329096-51c27beff665",
+  "potato-egg-hash": "photo-1717568511286-09f24660363d"
+};
+
+const photoUrl = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=800&q=70`;
+
 export function RecipeCover({ recipe, className, rounded = "rounded-2xl" }: { recipe: Recipe; className?: string; rounded?: string }) {
+  const [failed, setFailed] = useState(false);
+  const photo = PHOTOS[recipe.id];
+  if (photo && !failed) {
+    return (
+      <div className={cn("relative overflow-hidden bg-ice", rounded, className)}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={photoUrl(photo)} alt={recipe.name} loading="lazy" className="h-full w-full object-cover" onError={() => setFailed(true)} />
+      </div>
+    );
+  }
+  return <IllustratedCover recipe={recipe} className={className} rounded={rounded} />;
+}
+
+/** Illustrated recipe cover: a plate seen from above with the recipe's colors. */
+function IllustratedCover({ recipe, className, rounded }: { recipe: Recipe; className?: string; rounded: string }) {
   const [a, b] = recipe.palette;
   const seed = [...recipe.id].reduce((s, c) => s + c.charCodeAt(0), 0);
   const dots = Array.from({ length: 9 }, (_, i) => {
